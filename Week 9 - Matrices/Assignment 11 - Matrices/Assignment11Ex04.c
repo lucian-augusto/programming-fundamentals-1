@@ -21,7 +21,7 @@ int main(void) {
     printMatrix(dim, testMatrix1);
     printIsMagicSquare(isMagicSquare(dim, testMatrix1));
 
-    printf("\nMatrix 2:\n");
+    printf("\nMatriz 2:\n");
     printMatrix(dim, testMatrix2);
     printIsMagicSquare(isMagicSquare(dim, testMatrix2));
 
