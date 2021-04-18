@@ -6,6 +6,9 @@
 
 void multiplyMatrices(int dim, int m1[dim][dim], int m2[dim][dim], int result[dim][dim]);
 int calculateCurrentElement(int currentPosX, int currentPosY, int dim, int m1[dim][dim], int m2[dim][dim]);
+void calculateMatrixToThePower(int dim, int m[dim][dim], int power, int result[dim][dim]);
+void copyMatrix(int dim, int m[dim][dim], int copy[dim][dim]);
+void capturePowerInput(int *power);
 void fillMatrix(int dim, int mat[dim][dim]);
 void printMatrix(int dim, int mat[dim][dim]);
 
@@ -14,6 +17,7 @@ int main(void) {
     int matrix1[DIM][DIM];
     int matrix2[DIM][DIM];
     int resultMatrix[DIM][DIM];
+    int power;
     int dim = DIM;
 
     fillMatrix(dim, matrix1);
@@ -26,6 +30,15 @@ int main(void) {
 
     multiplyMatrices(dim, matrix1, matrix2, resultMatrix);
     printf("Matriz C = A * B\n");
+    printMatrix(dim, resultMatrix);
+
+    multiplyMatrices(dim, matrix1, matrix1, resultMatrix);
+    printf("Matriz C = A^2\n");
+    printMatrix(dim, resultMatrix);
+
+    capturePowerInput(&power);
+    calculateMatrixToThePower(dim, matrix1, power, resultMatrix);
+    printf("Matriz C = A^%d\n", power);
     printMatrix(dim, resultMatrix);
 
     return 0;
@@ -50,6 +63,38 @@ int calculateCurrentElement(int currentPosX, int currentPosY, int dim, int m1[di
     }
 
     return result;
+}
+
+void calculateMatrixToThePower(int dim, int m[dim][dim], int power, int result[dim][dim]) {
+    int intermediateResult[dim][dim];
+
+    copyMatrix(dim, m, intermediateResult);
+
+    power--;
+    while (power > 0) {
+        multiplyMatrices(dim, intermediateResult, m, result);
+        power--;
+        copyMatrix(dim, result, intermediateResult);
+    }
+}
+
+void copyMatrix(int dim, int m[dim][dim], int copy[dim][dim]) {
+    int i, j;
+    for (i = 0; i < dim; i++) {
+        for (j = 0; j < dim; j++) {
+            copy[i][j] = m[i][j];
+        }
+     }
+}
+
+void capturePowerInput(int *power) {
+    printf("Por favor, insira a expoente para elevar a matriz A: ");
+    scanf("%d", power);
+
+    while (*power < 1) {
+        printf("valor inválido. O expoente deve ser maior do que 0. Tente novamente: ");
+        scanf("%d", power);
+    }
 }
 
 void fillMatrix(int dim, int mat[dim][dim]) {
