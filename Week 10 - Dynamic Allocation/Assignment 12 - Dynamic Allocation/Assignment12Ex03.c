@@ -27,6 +27,7 @@ int main(void) {
 
     printArray(newLength, filteredArray);
 
+    free(array);
     free(filteredArray);
     
     return 0;
