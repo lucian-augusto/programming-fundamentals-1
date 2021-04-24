@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <time.h>
 
-int * criaVetor(int tam, int lim);
-int * expandeVetor(int *v, int tam, int n, int lim);
+int* criaVetor(int tam, int lim);
+int* expandeVetor(int *v, int tam, int n, int lim);
 void criaVetorPorReferencia(int **v, int tam, int lim);
-void fillArrayWithPositiveAndNegativeNumbers(int size, int a[], int limit);
-void fillArray(int size, int a[], int limit);
-void printArray(int size, int a[]);
+void fillArrayWithPositiveAndNegativeNumbers(int size, int *a, int limit);
+void fillArray(int size, int *a, int limit);
+void printArray(int size, int *a);
 int captureArrayLength();
 int captureNumberLimit();
 int captureResize();
@@ -26,7 +26,7 @@ int main(void) {
     array1 = criaVetor(size, limit);
     printArray(size, array1);
 
-    expansionSize= captureResize();
+    expansionSize = captureResize();
 
     printf("Vetor 1 (expandido):\n");
     array1 = expandeVetor(array1, size, expansionSize, limit);
@@ -36,27 +36,38 @@ int main(void) {
     criaVetorPorReferencia(&array2, size, limit);
     printArray(size, array2);
 
+    free(array1);
+    free(array2);
+
     return 0;
 }
 
 // (a)
-int * criaVetor(int tam, int lim) {
+int* criaVetor(int tam, int lim) {
     int *array;
 
     array = (int*) malloc(tam * sizeof(int));
 
-    fillArray(tam, array, lim);
+    if (array == NULL) {
+        printf("Erro ao alocar memória para o vetor.");
+    } else {
+        fillArray(tam, array, lim);
+    }
 
     return array;
 }
 
 // (b)
-int * expandeVetor(int *v, int tam, int n, int lim) {
+int* expandeVetor(int *v, int tam, int n, int lim) {
     int *a;
 
     a = (int*) realloc(v, (tam + n) * sizeof(int));
 
-    fillArray(n, a+tam, lim);
+    if (a == NULL) {
+        printf("Erro ao alocar memória para o vetor.");
+    } else {
+        fillArray(n, a+tam, lim);
+    }
 
     return a;
 }
@@ -64,11 +75,15 @@ int * expandeVetor(int *v, int tam, int n, int lim) {
 // Challenge
 void criaVetorPorReferencia(int **v, int tam, int lim) {
     *v = (int*) malloc(tam * sizeof(int));
-
-    fillArrayWithPositiveAndNegativeNumbers(tam, *v, lim);
+    
+    if (*v == NULL) {
+        printf("Erro ao alocar memória para o vetor.");
+    } else {
+        fillArrayWithPositiveAndNegativeNumbers(tam, *v, lim);
+    }
 }
 
-void fillArrayWithPositiveAndNegativeNumbers(int size, int a[], int limit) {
+void fillArrayWithPositiveAndNegativeNumbers(int size, int *a, int limit) {
     int i;
 
     for (i = 0; i < size; i++) {
@@ -76,7 +91,7 @@ void fillArrayWithPositiveAndNegativeNumbers(int size, int a[], int limit) {
     }
 }
 
-void fillArray(int size, int a[], int limit) {
+void fillArray(int size, int *a, int limit) {
     int i;
 
     for (i = 0; i < size; i++) {
@@ -84,13 +99,17 @@ void fillArray(int size, int a[], int limit) {
     }
 }
 
-void printArray(int size, int a[]) {
+void printArray(int size, int *a) {
     int i;
 
-    for (i = 0; i < size; i++) {
-        printf("%d\t", a[i]);
-    }
+    if (a == NULL) {
+        printf("NULL array.");
+    } else {
+        for (i = 0; i < size; i++) {
+            printf("%d\t", a[i]);
+        }
     printf("\n");
+    }
 }
 
 int captureArrayLength() {
