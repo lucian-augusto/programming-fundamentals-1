@@ -38,6 +38,8 @@ int main(void) {
         }
     }
 
+    free(applianceList);
+
     return 0;
 }
 

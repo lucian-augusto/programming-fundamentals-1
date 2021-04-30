@@ -41,6 +41,9 @@ int main(void) {
 
     printFuncionarioArray(selectedEmployees, subAmount);
 
+    free(f);
+    free(selectedEmployees);
+
     return 0;
 }
 

@@ -30,6 +30,8 @@ int main(void) {
 
     printNumberOfVowels(&counter);
 
+    free(sentence);
+
     return 0;
 }
 

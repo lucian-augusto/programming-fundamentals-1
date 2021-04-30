@@ -1,0 +1,3 @@
+Esta eh uma frase
+Linha de numeros: 45, 34, 23
+34, 23, 12

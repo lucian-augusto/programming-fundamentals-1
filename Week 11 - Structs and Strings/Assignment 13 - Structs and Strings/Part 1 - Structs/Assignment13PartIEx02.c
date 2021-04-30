@@ -26,6 +26,8 @@ int main(void) {
 
     printMonthlyBirthdays(personList, PERSON_AMOUNT);
 
+    free(personList);
+
     return 0;
 }
 
