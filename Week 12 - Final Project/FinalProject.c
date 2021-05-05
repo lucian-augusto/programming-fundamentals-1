@@ -15,13 +15,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
-void callSleep(int timeInMs) {
-#if defined(__APPLE__) || defined(__linux__)
-    usleep(timeInMs * 1000);
-#elif _WIN32
-    Sleep(timeInMs);
-#endif
-}
 
 void limpaMatriz(char **m, int nL, int nC)
 {
@@ -109,6 +102,65 @@ void inicLWSS(char **m, int nL, int nC)
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+char **alocaMatriz(int nL, int nC) {
+    char **m;
+    int i;
+
+    m = (char**) malloc(nL * sizeof(char*));
+
+    for (i = 0; i < nL; i++) {
+        m[i] = (char*) malloc(nC * sizeof(char*));
+    }
+    // Add Error verification
+
+    return m;
+}
+void callSleep(int timeInMs) {
+#if defined(__APPLE__) || defined(__linux__)
+    usleep(timeInMs * 1000);
+#elif _WIN32
+    Sleep(timeInMs);
+#endif
+}
+
+void clearScreen() {
+#if defined(__APPLE__) || defined(__linux__)
+    system("clear");
+#elif _WIN32
+    system("cls");
+#endif
+}
+
+void copiaMatriz(char **m, char **aux, int nL, int nC) {
+    int i, j;
+
+    for (i = 0; i < nL; i++) {
+        for (j = 0; j < nC; j++) {
+            aux[i][j] = m[i][j];
+        }
+    }
+}
+
+void desalocaMatriz(char **m, int nL) {
+    int i;
+
+    for (i = 0; i < nL; i++) {
+        free(m[i]);
+    }
+    free(m);
+}
+
+void imprimeMatriz(char **m, int nL, int nC) {
+    int i, j;
+
+    for (i = 0; i < nL; i++) {
+        for (j = 0; j < nC; j++) {
+            printf("%c", m[i][j]);
+        }
+        printf("\n");
+    }
+}
+
 void jogaJogoVida(char **m, int nL, int nC)
 {
     char **aux;
@@ -120,7 +172,7 @@ void jogaJogoVida(char **m, int nL, int nC)
     ////laco de repeticao para jogar TOTAL DE CICLOS
 
     copiaMatriz(m,aux,nL,nC); //implemente uma funcao que copia uma matriz em outra
-    system("cls");
+    clearScreen();
     imprimeMatriz(aux,nL,nC);
     callSleep(100);
 
