@@ -1,10 +1,11 @@
 /* =============================================================================
  * Libraries
  * ========================================================================== */
-
 #include <stdio.h>
 #include <stdlib.h>
-// Adding compatibility with Linux, MacOS and Windows
+#include <ctype.h>
+#include <string.h>
+// Add compatibility with Linux, MacOS and Windows
 #if defined(__APPLE__) || defined(__linux__)
     #include <unistd.h>
 #elif _WIN32
@@ -12,12 +13,16 @@
 #endif
 
 /* =============================================================================
- * Macros Definitions
+ * Macro Definitions
  * ========================================================================== */
 
 #define ORG 'X'
 #define VAZ '.'
 #define TAM 101
+#define BOARD_SIZE_MIN 5
+#define BOARD_SIZE_MAX 50
+#define LIFE_CYCLE_MIN 10
+#define LIFE_CYCLE_MAX 100
 
 /* =============================================================================
  * Struct Declarations
@@ -98,6 +103,31 @@ void desalocaMatriz(char **m, int nL) {
 }
 
 /* =============================================================================
+ * Matrix Utilities
+ * ========================================================================== */
+
+void copiaMatriz(char **copy, char **original, int nL, int nC) {
+    int i, j;
+
+    for (i = 0; i < nL; i++) {
+        for (j = 0; j < nC; j++) {
+            copy[i][j] = original[i][j];
+        }
+    }
+}
+
+void imprimeMatriz(char **m, int nL, int nC) {
+    int i, j;
+
+    for (i = 0; i < nL; i++) {
+        for (j = 0; j < nC; j++) {
+            printf("%c ", m[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+/* =============================================================================
  * Board Initialization Functions
  * ========================================================================== */
 
@@ -172,31 +202,6 @@ void inicLWSS(char **m, int nL, int nC) {
         for(j=0;j<5;j++)
             m[xInic+i][yInic+j]=padrao[i][j];
 
-}
-
-/* =============================================================================
- * Matrix Utilities
- * ========================================================================== */
-
-void copiaMatriz(char **copy, char **original, int nL, int nC) {
-    int i, j;
-
-    for (i = 0; i < nL; i++) {
-        for (j = 0; j < nC; j++) {
-            copy[i][j] = original[i][j];
-        }
-    }
-}
-
-void imprimeMatriz(char **m, int nL, int nC) {
-    int i, j;
-
-    for (i = 0; i < nL; i++) {
-        for (j = 0; j < nC; j++) {
-            printf("%c ", m[i][j]);
-        }
-        printf("\n");
-    }
 }
 
 /* =============================================================================
@@ -275,6 +280,10 @@ void jogaJogoVida(char **m, int nL, int nC, int generationAmount) {
 
 }
 
+/* =============================================================================
+ * Game Initialization Functions
+ * ========================================================================== */
+
 void menuInicJogo(char **mat, int nL, int nC) {
     int opcao;
 
@@ -296,23 +305,113 @@ void menuInicJogo(char **mat, int nL, int nC) {
 
 }
 
+int shouldKeepOptions() {
+    char keepOptions;
+
+    printf("Deseja manter as mesmas opções (nome, dimensões do tabuleiro e número de ciclos)? (s/n): ");
+    scanf(" %c", &keepOptions);
+
+    keepOptions = tolower(keepOptions);
+    
+    while (keepOptions != 's' && keepOptions != 'n') {
+        printf("Opção inválida! Deseja manter as mesmas opções? (s/n): ");
+        scanf(" %c", &keepOptions);
+    }
+
+    getchar();
+
+    if (keepOptions == 's') {
+        return 1;
+    }
+    return 0;
+}
+
+int replayGame(int *keepOptions) {
+    char option;
+    printf("Deseja jogar novamente? (s/n): ");
+    scanf(" %c", &option);
+
+    option = tolower(option);
+    
+    while (option != 's' && option != 'n') {
+        printf("Opção inválida! Deseja jogar novamente? (s/n): ");
+        scanf(" %c", &option);
+    }
+
+    getchar();
+
+    if (option == 's') {
+        *keepOptions = shouldKeepOptions();
+        return 1;
+    }
+    return 0;
+}
+
+int captureBoardParam(char *paramName, int min, int max) {
+    int param;
+
+    printf("Insira o %s: ", paramName);
+    scanf("%d", &param);
+
+    while (param < min || param > max) {
+        printf("Entrada inválida! O %s deve estar entre %d e %d. Tente novamente: ", paramName, min, max);
+        scanf("%d", &param);
+    }
+
+    return param;
+}
+
+
+void captureGameOptions(Game *g) {
+    printf("Insira o seu nome: ");
+    fgets(g->gameName, TAM, stdin);
+    g->gameName[strcspn(g->gameName, "\n")] = 0;
+
+    g->numberLines = captureBoardParam("número de linhas", BOARD_SIZE_MIN, BOARD_SIZE_MAX);
+
+    g->numberColumns = captureBoardParam("número de colunas", BOARD_SIZE_MIN, BOARD_SIZE_MAX);
+
+    g->numberLifeCycles = captureBoardParam("número de ciclos de vida", LIFE_CYCLE_MIN, LIFE_CYCLE_MAX);
+}
+
+void playGame(Game *g) {
+        menuInicJogo(g->board, g->numberLines, g->numberColumns);
+
+        jogaJogoVida(g->board, g->numberLines, g->numberColumns,
+                     g->numberLifeCycles);
+    
+}
+
+void newGame(Game *g, int isReplay) {
+    if (isReplay) {
+        desalocaMatriz(g->board, g->numberLines);
+    }
+
+    captureGameOptions(g);
+
+    g->board = alocaMatriz(g->numberLines, g->numberColumns);
+
+    playGame(g);    
+}
+
 
 int main() {
     Game game;
+    int replay = 0;
+    int keepOptions = 0;
 
-    game.numberLines = 20;
-    game.numberColumns = 20;
-    game.numberLifeCycles = 15;
+    do {
 
+        if (!keepOptions) {
+            newGame(&game, replay);
+        } else {
+            playGame(&game);
+        }
+        
+        replay = replayGame(&keepOptions);
 
-    game.board = alocaMatriz(game.numberLines, game.numberColumns);
-
-    menuInicJogo(game.board, game.numberLines, game.numberColumns);
-
-    jogaJogoVida(game.board, game.numberLines, game.numberColumns,
-                 game.numberLifeCycles); 
-
+    } while (replay);
+    
     desalocaMatriz(game.board, game.numberLines);
-
 
 }
