@@ -1,18 +1,38 @@
+/* =============================================================================
+ * Libraries
+ * ========================================================================== */
+
 #include <stdio.h>
 #include <stdlib.h>
+// Adding compatibility with Linux, MacOS and Windows
 #if defined(__APPLE__) || defined(__linux__)
     #include <unistd.h>
 #elif _WIN32
     #include <windows.h>
 #endif
 
+/* =============================================================================
+ * Macros Definitions
+ * ========================================================================== */
+
 #define ORG 'X'
 #define VAZ '.'
 #define TAM 101
 
-/* ==========================================================================================
- * Syscall Functions/Utilities
- * ======================================================================================== */
+/* =============================================================================
+ * Struct Declarations
+ * ========================================================================== */
+
+typedef struct {
+    char gameName[TAM];
+    int numberLines, numberColumns;
+    char **board;
+    int numberLifeCycles;
+} Game;
+
+/* =============================================================================
+ * Syscall Functions/Utilities (Compatible with Linux, MacOS and Windows)
+ * ========================================================================== */
 
 void callSleep(int timeInMs) {
 #if defined(__APPLE__) || defined(__linux__)
@@ -30,9 +50,56 @@ void clearScreen() {
 #endif
 }
 
-/* ==========================================================================================
+/* =============================================================================
+ * Memory Utilities
+ * ========================================================================== */
+
+int checkMemoryAllocation(char **a, int numberLines) {
+    int i;
+    
+    if (a == NULL) {
+        return 0;
+    }
+
+    for (i = 0; i < numberLines; i++) {
+        if (a == NULL) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+char **alocaMatriz(int nL, int nC) {
+    char **m;
+    int i;
+    int err = 0;
+
+    m = (char**) malloc(nL * sizeof(char*));
+        
+    for (i = 0; i < nL; i++) {
+        m[i] = (char*) malloc(nC * sizeof(char*));
+
+    }
+
+    if (!checkMemoryAllocation(m, nL)) {
+        printf("Erro ao alocar matriz");
+    }
+    
+    return m;
+}
+
+void desalocaMatriz(char **m, int nL) {
+    int i;
+
+    for (i = 0; i < nL; i++) {
+        free(m[i]);
+    }
+    free(m);
+}
+
+/* =============================================================================
  * Board Initialization Functions
- * ======================================================================================== */
+ * ========================================================================== */
 
 void limpaMatriz(char **m, int nL, int nC) {
     int i,j;
@@ -107,23 +174,9 @@ void inicLWSS(char **m, int nL, int nC) {
 
 }
 
-/* ==========================================================================================
+/* =============================================================================
  * Matrix Utilities
- * ======================================================================================== */
-
-char **alocaMatriz(int nL, int nC) {
-    char **m;
-    int i;
-
-    m = (char**) malloc(nL * sizeof(char*));
-
-    for (i = 0; i < nL; i++) {
-        m[i] = (char*) malloc(nC * sizeof(char*));
-    }
-    // Add Error verification
-
-    return m;
-}
+ * ========================================================================== */
 
 void copiaMatriz(char **copy, char **original, int nL, int nC) {
     int i, j;
@@ -133,15 +186,6 @@ void copiaMatriz(char **copy, char **original, int nL, int nC) {
             copy[i][j] = original[i][j];
         }
     }
-}
-
-void desalocaMatriz(char **m, int nL) {
-    int i;
-
-    for (i = 0; i < nL; i++) {
-        free(m[i]);
-    }
-    free(m);
 }
 
 void imprimeMatriz(char **m, int nL, int nC) {
@@ -155,9 +199,9 @@ void imprimeMatriz(char **m, int nL, int nC) {
     }
 }
 
-/* ==========================================================================================
+/* =============================================================================
  * Game Mechanics Functions
- * ======================================================================================== */
+ * ========================================================================== */
 
 int countAliveCellsAround(char **board, int currentLine, int currentColumn, int numberLines, int numberColumns) {
     int aliveCellCount = 0;
@@ -198,7 +242,7 @@ char evaluateCell(char **board, int currentLine, int currentColumn, int numberLi
     return newStatus;
 }
 
-void createNextGenerationBoard(char **nextGenBoard,char **currentGenBoard,  int numberLines, int numberColumns) {
+void createNextGenerationBoard(char **nextGenBoard, char **currentGenBoard, int numberLines, int numberColumns) {
     int i, j;
 
     for (i = 0; i < numberLines; i++) {
@@ -210,16 +254,15 @@ void createNextGenerationBoard(char **nextGenBoard,char **currentGenBoard,  int 
 
 void jogaJogoVida(char **m, int nL, int nC, int generationAmount) {
     char **aux;
-    int viz,k;
-    int i,j;
+    int i;
 
-    aux = alocaMatriz(nL,nC); //matriz que devera ser usada para atualizar cada jogada
+    aux = alocaMatriz(nL,nC); // matriz que devera ser usada para atualizar cada jogada
 
     ////laco de repeticao para jogar TOTAL DE CICLOS
 
     for (i = 0; i < generationAmount; i++) {
         createNextGenerationBoard(aux, m, nL, nC);
-        copiaMatriz(m,aux,nL,nC); //implemente uma funcao que copia uma matriz em outra
+        copiaMatriz(m,aux,nL,nC);
         clearScreen();
         imprimeMatriz(aux,nL,nC);
         callSleep(500);
@@ -255,21 +298,21 @@ void menuInicJogo(char **mat, int nL, int nC) {
 
 
 int main() {
+    Game game;
+
+    game.numberLines = 20;
+    game.numberColumns = 20;
+    game.numberLifeCycles = 15;
 
 
-    char **mat;
+    game.board = alocaMatriz(game.numberLines, game.numberColumns);
 
-    int nL=20,nC=20; //ou fornecido pelo usuario
-    int generationAmount = 15;
+    menuInicJogo(game.board, game.numberLines, game.numberColumns);
 
+    jogaJogoVida(game.board, game.numberLines, game.numberColumns,
+                 game.numberLifeCycles); 
 
-    mat = alocaMatriz(nL,nC);
-
-    menuInicJogo(mat,nL,nC);
-
-    jogaJogoVida(mat,nL,nC, generationAmount); //defina o numero de ciclos que o jogo vai rodar (def. pelo usuario ou constante)
-
-    desalocaMatriz(mat,nL);
+    desalocaMatriz(game.board, game.numberLines);
 
 
 }
