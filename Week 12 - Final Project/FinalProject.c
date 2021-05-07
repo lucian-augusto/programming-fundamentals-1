@@ -39,6 +39,11 @@ typedef struct {
 } Game;
 
 /* =============================================================================
+ * Function Prototypes Header
+ * ========================================================================== */
+void menuInicJogo(char **mat, int nL, int nC);
+
+/* =============================================================================
  * Syscall Functions/Utilities (Compatible with Linux, MacOS and Windows)
  * ========================================================================== */
 
@@ -130,6 +135,13 @@ void imprimeMatriz(char **m, int nL, int nC) {
     }
 }
 
+int isInRange(int number, int dim) {
+    if (number >= 0 && number < dim) {
+        return 1;
+    }
+    return 0;
+}
+
 /* =============================================================================
  * Board Initialization Functions
  * ========================================================================== */
@@ -207,6 +219,48 @@ void inicLWSS(char **m, int nL, int nC) {
 
 }
 
+void customInit(char **board, int numberLines, int numberColumns) {
+    FILE *f;
+    char *token;
+    char str[BUFFER];
+    int line = 0;
+    int loopCount = 0;
+    int currentElement;
+    
+    limpaMatriz(board, numberLines, numberColumns);
+
+    f = fopen(CUSTOM_INIT_FILE_PATH, "r");
+
+    if (f != NULL) {
+        while (fgets(str, BUFFER, f)) {
+            token = strtok(str, ",");
+            loopCount = 0;
+            
+            while (token != NULL) {
+                currentElement = atoi(token);
+                if (loopCount == 0) {
+                    if (!isInRange(currentElement, numberLines)) {
+                        break;
+                    }
+                    line = currentElement;
+                } else {
+                    if (isInRange(currentElement, numberColumns)) {
+                        board[line][currentElement] = ORG;
+                    }
+                }
+                loopCount++;
+                token = strtok(NULL, ",");
+            }
+            
+        }
+        fclose(f);
+    } else {
+        printf("Arquivo \"customInit.csv\" não encontrado. Por favor, escolha "
+               "outra inicialização de tabuleiro.");
+        menuInicJogo(board, numberLines, numberColumns);
+    }
+}
+
 /* =============================================================================
  * Game Mechanics Functions
  * ========================================================================== */
@@ -264,9 +318,7 @@ void jogaJogoVida(char **m, int nL, int nC, int generationAmount) {
     char **aux;
     int i;
 
-    aux = alocaMatriz(nL,nC); // matriz que devera ser usada para atualizar cada jogada
-
-    ////laco de repeticao para jogar TOTAL DE CICLOS
+    aux = alocaMatriz(nL,nC);
 
     for (i = 0; i < generationAmount; i++) {
         createNextGenerationBoard(aux, m, nL, nC);
@@ -276,8 +328,6 @@ void jogaJogoVida(char **m, int nL, int nC, int generationAmount) {
         callSleep(500);
 
     }
-
-    ////fim do laco de repeticao para jogar TOTAL DE CICLOS
 
     desalocaMatriz(aux,nL);
 
@@ -290,21 +340,24 @@ void jogaJogoVida(char **m, int nL, int nC, int generationAmount) {
 void menuInicJogo(char **mat, int nL, int nC) {
     int opcao;
 
-    printf("(1)Bloco\n(2)Blinker\n(3)Sapo\n(4)Glider\n(5)LWSS\nEntre com a opcao: ");
+    printf("Escolha o tipo de inicialização do tabuleiro:\n");
+    printf("(1)Bloco\n(2)Blinker\n(3)Sapo\n(4)Glider\n(5)LWSS\n"
+           "(6)Inicialização Customizada\nEntre com a opcao: ");
     scanf("%d",&opcao);
+
+    while (opcao < 1 || opcao > 6) {
+        printf("Opção inválida! Tente novamente: ");
+        scanf("%d",&opcao);
+    }
+    
     switch(opcao) {
         case 1:   inicBloco(mat,nL,nC); break;
         case 2:   inicBlinker(mat,nL,nC); break;
         case 3:   inicSapo(mat,nL,nC); break;
         case 4:   inicGlider(mat,nL,nC); break;
         case 5:   inicLWSS(mat,nL,nC); break;
+        case 6:   customInit(mat, nL, nC); break;
     }
-
-    imprimeMatriz(mat,nL,nC);
-
-    printf("Se inicializacao correta digite qualquer tecla para iniciar o jogo...");
-    while(getchar()!='\n');
-    getchar();
 
 }
 
@@ -378,10 +431,17 @@ void captureGameOptions(Game *g) {
 }
 
 void playGame(Game *g) {
-        menuInicJogo(g->board, g->numberLines, g->numberColumns);
+    menuInicJogo(g->board, g->numberLines, g->numberColumns);
 
-        jogaJogoVida(g->board, g->numberLines, g->numberColumns,
-                     g->numberLifeCycles);
+    imprimeMatriz(g->board, g->numberLines, g->numberColumns);
+
+    printf("Se inicializacao correta digite qualquer tecla para iniciar o jogo...");
+    while(getchar()!='\n');
+    getchar();
+
+    jogaJogoVida(g->board, g->numberLines, g->numberColumns,
+                 g->numberLifeCycles);
+
     
 }
 
@@ -417,7 +477,6 @@ void callSplashScreen() {
     
     printf("\n\n\nPressione ENTER para começar...");
     while (getchar() != '\n');
-    getchar();
 }
 
 int main() {
