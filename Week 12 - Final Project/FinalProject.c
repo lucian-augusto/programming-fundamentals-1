@@ -19,10 +19,13 @@
 #define ORG 'X'
 #define VAZ '.'
 #define TAM 101
+#define BUFFER 2048
 #define BOARD_SIZE_MIN 5
 #define BOARD_SIZE_MAX 50
 #define LIFE_CYCLE_MIN 10
 #define LIFE_CYCLE_MAX 100
+#define CUSTOM_INIT_FILE_PATH "./customInit.csv"
+#define SPLASH_SCREEN_FILE_PATH "./SplashScreen.txt"
 
 /* =============================================================================
  * Struct Declarations
@@ -394,11 +397,35 @@ void newGame(Game *g, int isReplay) {
     playGame(g);    
 }
 
+void callSplashScreen() {
+    FILE *f;
+    char str[BUFFER];
+
+    f = fopen(SPLASH_SCREEN_FILE_PATH, "r");
+
+    if (f != NULL) {
+        while (fgets(str, BUFFER, f) != NULL) {
+            printf("%s", str);
+        }
+
+        fclose(f);
+        
+    } else {
+        printf("*** JOGO DA VIDA ***");
+    }
+
+    
+    printf("\n\n\nPressione ENTER para começar...");
+    while (getchar() != '\n');
+    getchar();
+}
 
 int main() {
     Game game;
     int replay = 0;
     int keepOptions = 0;
+
+    callSplashScreen();
 
     do {
 
