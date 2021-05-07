@@ -41,7 +41,39 @@ typedef struct {
 /* =============================================================================
  * Function Prototypes Header
  * ========================================================================== */
+// Syscall Functions/Utilities (Compatible with Linux, MacOS and Windows)
+void callSleep(int timeInMs);
+void clearScreen();
+// Memory Utilities
+char **alocaMatriz(int nL, int nC);
+int checkMemoryAllocation(char **a, int numberLines);
+void desalocaMatriz(char **m, int nL);
+// Matrix Utilities
+void copiaMatriz(char **copy, char **original, int nL, int nC);
+void imprimeMatriz(char **m, int nL, int nC);
+int isInRange(int number, int dim);
+// Board Initialization Functions
+void customInit(char **board, int numberLines, int numberColumns);
+void inicBlinker(char **m, int nL, int nC);
+void inicBloco(char **m, int nL, int nC);
+void inicGlider(char **m, int nL, int nC);
+void inicLWSS(char **m, int nL, int nC);
+void inicSapo(char **m, int nL, int nC);
+void limpaMatriz(char **m, int nL, int nC);
+// Game Mechanics Functions
+int countAliveCellsAround(char **board, int currentLine, int currentColumn, int numberLines, int numberColumns);
+void createNextGenerationBoard(char **nextGenBoard, char **currentGenBoard, int numberLines, int numberColumns);
+char evaluateCell(char **board, int currentLine, int currentColumn, int numberLines, int numberColumns);
+void jogaJogoVida(char **m, int nL, int nC, int generationAmount);
+// Game Initialization Functions
+void callSplashScreen();
+int captureBoardParam(char *paramName, int min, int max);
+void captureGameOptions(Game *g);
 void menuInicJogo(char **mat, int nL, int nC);
+void newGame(Game *g, int isReplay);
+void playGame(Game *g);
+int replayGame(int *keepOptions);
+int shouldKeepOptions();
 
 /* =============================================================================
  * Syscall Functions/Utilities (Compatible with Linux, MacOS and Windows)
