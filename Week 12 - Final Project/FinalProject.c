@@ -23,7 +23,7 @@
 #define BOARD_SIZE_MIN 5
 #define BOARD_SIZE_MAX 50
 #define LIFE_CYCLE_MIN 10
-#define LIFE_CYCLE_MAX 100
+#define LIFE_CYCLE_MAX 1000
 #define CUSTOM_INIT_FILE_PATH "./customInit.csv"
 #define SPLASH_SCREEN_FILE_PATH "./SplashScreen.txt"
 
@@ -32,7 +32,7 @@
  * ========================================================================== */
 
 typedef struct {
-    char gameName[TAM];
+    char playerName[TAM];
     int numberLines, numberColumns;
     char **board;
     int numberLifeCycles;
@@ -45,13 +45,13 @@ typedef struct {
 void callSplashScreen();
 int captureBoardParam(char *paramName, int min, int max);
 void captureGameOptions(Game *g);
-void menuInicJogo(char **mat, int nL, int nC);
+void menuInicJogo(Game *g);
 void newGame(Game *g, int isReplay);
 void playGame(Game *g);
 int replayGame(int *keepOptions);
 int shouldKeepOptions();
 // Board Initialization Functions
-void customInit(char **board, int numberLines, int numberColumns);
+void customInit(Game *g);
 void inicBlinker(char **m, int nL, int nC);
 void inicBloco(char **m, int nL, int nC);
 void inicGlider(char **m, int nL, int nC);
@@ -104,6 +104,8 @@ int main() {
     
     desalocaMatriz(game.board, game.numberLines);
 
+    printf("Muito obrigado por jogar %s!!! :)\n", game.playerName);
+
 }
 
 /* =============================================================================
@@ -137,7 +139,7 @@ void callSplashScreen() {
 int captureBoardParam(char *paramName, int min, int max) {
     int param;
 
-    printf("Insira o %s: ", paramName);
+    printf("Insira o %s (entre %d e %d): ", paramName, min, max);
     scanf("%d", &param);
 
     while (param < min || param > max) {
@@ -152,8 +154,8 @@ int captureBoardParam(char *paramName, int min, int max) {
 
 void captureGameOptions(Game *g) {
     printf("Insira o seu nome: ");
-    fgets(g->gameName, TAM, stdin);
-    g->gameName[strcspn(g->gameName, "\n")] = 0;
+    fgets(g->playerName, TAM, stdin);
+    g->playerName[strcspn(g->playerName, "\n")] = 0;
 
     g->numberLines = captureBoardParam("número de linhas", BOARD_SIZE_MIN,
                                        BOARD_SIZE_MAX);
@@ -165,10 +167,10 @@ void captureGameOptions(Game *g) {
                                             LIFE_CYCLE_MIN, LIFE_CYCLE_MAX);
 }
 
-void menuInicJogo(char **mat, int nL, int nC) {
+void menuInicJogo(Game *g) {
     int opcao;
 
-    printf("Escolha o tipo de inicialização do tabuleiro:\n");
+    printf("%s, escolha o tipo de inicialização do tabuleiro:\n", g->playerName);
     printf("(1)Bloco\n(2)Blinker\n(3)Sapo\n(4)Glider\n(5)LWSS\n"
            "(6)Inicialização Customizada\nEntre com a opcao: ");
     scanf("%d",&opcao);
@@ -179,12 +181,12 @@ void menuInicJogo(char **mat, int nL, int nC) {
     }
     
     switch(opcao) {
-        case 1:   inicBloco(mat,nL,nC); break;
-        case 2:   inicBlinker(mat,nL,nC); break;
-        case 3:   inicSapo(mat,nL,nC); break;
-        case 4:   inicGlider(mat,nL,nC); break;
-        case 5:   inicLWSS(mat,nL,nC); break;
-        case 6:   customInit(mat, nL, nC); break;
+        case 1:   inicBloco(g->board, g->numberLines, g->numberColumns); break;
+        case 2:   inicBlinker(g->board, g->numberLines, g->numberColumns); break;
+        case 3:   inicSapo(g->board, g->numberLines, g->numberColumns); break;
+        case 4:   inicGlider(g->board, g->numberLines, g->numberColumns); break;
+        case 5:   inicLWSS(g->board, g->numberLines, g->numberColumns); break;
+        case 6:   customInit(g); break;
     }
 }
 
@@ -203,14 +205,14 @@ void newGame(Game *g, int isReplay) {
 }
 
 void playGame(Game *g) {
-    menuInicJogo(g->board, g->numberLines, g->numberColumns);
+    menuInicJogo(g);
 
     clearScreen();
 
     imprimeMatriz(g->board, g->numberLines, g->numberColumns);
 
-    printf("Se inicializacao correta digite qualquer tecla para iniciar o "
-           "jogo...");
+    printf("%s, se inicializacao correta digite qualquer tecla para iniciar o "
+           "jogo...", g->playerName);
     while(getchar()!='\n');
     getchar();
 
@@ -267,7 +269,7 @@ int shouldKeepOptions() {
  * Board Initialization Functions
  * ========================================================================== */
 
-void customInit(char **board, int numberLines, int numberColumns) {
+void customInit(Game *g) {
     FILE *f;
     char *token;
     char str[BUFFER];
@@ -275,7 +277,7 @@ void customInit(char **board, int numberLines, int numberColumns) {
     int loopCount = 0;
     int currentElement;
     
-    limpaMatriz(board, numberLines, numberColumns);
+    limpaMatriz(g->board, g->numberLines, g->numberColumns);
 
     f = fopen(CUSTOM_INIT_FILE_PATH, "r");
 
@@ -287,13 +289,13 @@ void customInit(char **board, int numberLines, int numberColumns) {
             while (token != NULL) {
                 currentElement = atoi(token);
                 if (loopCount == 0) {
-                    if (!isInRange(currentElement, numberLines)) {
+                    if (!isInRange(currentElement, g->numberLines)) {
                         break;
                     }
                     line = currentElement;
                 } else {
-                    if (isInRange(currentElement, numberColumns)) {
-                        board[line][currentElement] = ORG;
+                    if (isInRange(currentElement, g->numberColumns)) {
+                        (*g).board[line][currentElement] = ORG;
                     }
                 }
                 loopCount++;
@@ -305,7 +307,7 @@ void customInit(char **board, int numberLines, int numberColumns) {
     } else {
         printf("Arquivo \"customInit.csv\" não encontrado. Por favor, escolha "
                "outra inicialização de tabuleiro.");
-        menuInicJogo(board, numberLines, numberColumns);
+        menuInicJogo(g);
     }
 }
 
@@ -398,7 +400,7 @@ int countAliveCellsAround(char **board, int currentLine, int currentColumn,
     finalSweepY = currentLine == numberLines - 1 ? currentLine : currentLine + 1;
 
     initialSweepX = currentColumn == 0 ? currentColumn : currentColumn - 1;
-    finalSweepX = currentColumn == numberColumns - 1 ? currentColumn :currentColumn + 1;
+    finalSweepX = currentColumn == numberColumns - 1 ? currentColumn : currentColumn + 1;
 
     for (i = initialSweepY; i <= finalSweepY; i++) {
         for (j = initialSweepX; j <= finalSweepX; j++) {
