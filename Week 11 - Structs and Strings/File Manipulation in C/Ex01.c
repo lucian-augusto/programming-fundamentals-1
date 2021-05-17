@@ -7,13 +7,15 @@ int main() {
     FILE *a;
     char str[BUFFER];
 
-    a = fopen("Arquivo.txt", "r");
-
-    if (fgets(str, BUFFER, a)) {
-        puts(str);
+    a = fopen("file.txt", "r");
+    int i;
+    for (i = 0; i < 3; i++) {
+      if (fgets(str, BUFFER, a)) {
+        printf("%s", str);
+      }
     }
 
-    printf("%s", str);
+    fclose(a);
 
     return 0;
 }
