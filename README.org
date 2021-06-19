@@ -1,0 +1,5 @@
+#+TITLE: Readme
+#+AUTHOR: Lucian Augusto
+
+* ABOUT
+ All the codes written by me for the Programming Fundamentals 1 course of the Bachelor's in Information Systems course at the Federal University of Technology - Paraná (UTFPR).
